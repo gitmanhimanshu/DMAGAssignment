@@ -530,6 +530,7 @@ JEVMODEL_API_KEY=your_jev_api_key_here
 * `GROK_API_KEY`: Primary LLM provider (supports xAI `grok-beta`, or Groq keys starting with `gsk_` for `llama-3.3-70b-versatile`; also accepts `XAI_API_KEY` or `GROK`).
 * `GEMINI_API_KEY`: Secondary LLM fallback (uses Google `gemini-2.5-flash`).
 * `JEVMODEL_API_KEY`: Bounded candidate ranking decision layer.
+* **Note on Free Providers & Model Switching:** The current setup uses a free/low-cost provider configuration (Groq / xAI Grok free tier) to make evaluation zero-cost. Evaluators or production teams can easily change models and API keys to Anthropic Claude (`claude-3-5-sonnet`), OpenAI GPT (`gpt-4o`), or other frontier providers as needed without modifying grounding or validation logic.
 
 > **Offline / Resilient Execution:** If API keys are omitted or quotas are exhausted, the system automatically runs using its built-in grounded deterministic fallbacks (`_deterministic_fallback` and `_deterministic_generate_itinerary`). All grounding, pricing, and validation rules remain 100% active.
 

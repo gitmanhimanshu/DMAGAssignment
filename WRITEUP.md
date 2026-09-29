@@ -198,8 +198,9 @@ Google Gemini (`gemini-2.5-flash` via the `google-genai` SDK) is incorporated in
 The repository implements a multi-provider LLM abstraction (`src/llm.py:LLMClient`) with **xAI Grok / Groq** configured as the primary model and **Gemini** as the secondary fallback:
 
 * **Primary Generation Tier:** When configured with `GROK_API_KEY` (or `GROK`, `XAI_API_KEY`), the client calls xAI Grok (`grok-beta`) or Groq (`llama-3.3-70b-versatile` if a `gsk_` key is supplied) for fast, cost-effective structured generation.
+* **Free / Low-Cost Model Configuration Note:** This take-home implementation deliberately uses a free or low-cost provider tier (Groq / xAI Grok free credits) to make evaluation frictionless and zero-cost. Evaluators or production teams can seamlessly change the model configuration and API keys to frontier models such as Anthropic Claude (`claude-3-5-sonnet`) or OpenAI GPT (`gpt-4o`) if desired, simply by configuring standard API endpoints.
 * **Automatic Exception Failover:** In `src/llm.py`, model calls are wrapped in provider-level exception handling. If Grok encounters a timeout, HTTP 429 rate limit, 5xx service outage, or authentication error, it catches the exception, logs a diagnostic notice, and immediately fails over to Google Gemini (`gemini-2.5-flash`).
-* **Cost & Experimentation Flexibility:** This assignment implementation supports a free or low-cost model configuration to minimize evaluation friction. Encapsulating the generative layer behind an abstract `LLMClient` interface ensures the underlying model provider can be switched (based on latency, context windows, free-tier quotas, or pricing) without altering retrieval, pricing, or validation guarantees.
+* **Provider-Agnostic Model Boundary:** Encapsulating the generative layer behind an abstract `LLMClient` interface ensures the underlying model provider can be swapped at any time (based on latency, context windows, enterprise pricing, or rate limits) without altering catalog grounding, deterministic pricing, or validation guarantees.
 
 ### 5. Why Deterministic Retrieval Before LLM/JEV?
 
