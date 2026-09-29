@@ -3,29 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel AI Planner</title>
+    <title>Travel AI Planner — Grounded Itinerary System</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Travel AI Planner</h1>
+        <header>
+            <h1>Travel AI Planner</h1>
+            <p class="subtitle">Grounded Itinerary Planning System (Agent-Assist Quoting Engine)</p>
+        </header>
+
+        <div class="preset-buttons">
+            <span class="preset-label">Quick Test Scenarios:</span>
+            <button type="button" class="preset-btn" onclick="loadPreset('REQ-1')">REQ-1 (Kerala Family)</button>
+            <button type="button" class="preset-btn" onclick="loadPreset('REQ-2')">REQ-2 (Munnar Budget)</button>
+            <button type="button" class="preset-btn warning-btn" onclick="loadPreset('REQ-3')">REQ-3 (Goa Trap)</button>
+        </div>
+
         <div class="input-section">
-            <input type="text" id="request-id" placeholder="Request ID (e.g. REQ-1)" value="REQ-1">
-            <textarea id="request-text" rows="4" placeholder="Enter travel request here...">5 days in Kerala for a family of 4 (2 adults, kids aged 8 and 11), mid-range budget around 60,000 total, we love nature and local food and prefer a relaxed pace.</textarea>
+            <div class="form-group">
+                <label for="request-id">Request ID:</label>
+                <input type="text" id="request-id" placeholder="Request ID (e.g. REQ-1)" value="REQ-1">
+            </div>
+            <div class="form-group">
+                <label for="request-text">Traveler Request:</label>
+                <textarea id="request-text" rows="4" placeholder="Enter travel request here...">5 days in Kerala for a family of 4 (2 adults, kids aged 8 and 11), mid-range budget around 60,000 total, we love nature and local food and prefer a relaxed pace.</textarea>
+            </div>
             <button id="generate-btn">Generate Itinerary</button>
         </div>
         
-        <div id="loading" class="hidden">Generating itinerary... Please wait.</div>
+        <div id="loading" class="hidden loading-box">
+            <div class="spinner"></div>
+            <span>Evaluating inventory, ranking candidates, and generating grounded quote...</span>
+        </div>
+
         <div id="error" class="hidden error-msg"></div>
         
         <div id="result-section" class="hidden">
-            <div class="summary-card">
-                <h2 id="plan-status"></h2>
+            <div id="summary-card" class="summary-card">
+                <div class="card-header">
+                    <h2 id="plan-status"></h2>
+                    <span id="plan-review" class="tag review-tag"></span>
+                </div>
                 <p id="plan-summary"></p>
                 <div class="meta-info">
                     <span id="plan-total" class="tag price-tag"></span>
                     <span id="plan-validation" class="tag validation-tag"></span>
-                    <span id="plan-review" class="tag review-tag"></span>
+                    <span id="plan-currency" class="tag">INR</span>
+                </div>
+                <div id="review-reasons-box" class="review-reasons hidden">
+                    <strong>Human Review Required:</strong>
+                    <ul id="review-reasons-list"></ul>
+                </div>
+            </div>
+
+            <div id="unfulfillable-card" class="unfulfillable-card hidden">
+                <h3>Request Cannot Be Fulfilled from Catalog</h3>
+                <p id="unfulfillable-text"></p>
+                <div class="unfulfillable-stats">
+                    <span>Items Booked: <strong>0</strong></span>
+                    <span>Fabricated Catalog IDs: <strong>0</strong></span>
+                    <span>Total Quoted Price: <strong>₹0</strong></span>
                 </div>
             </div>
             
