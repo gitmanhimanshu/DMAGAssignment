@@ -107,9 +107,9 @@ Human Review Required (Dynamic operational review justifications)
 ### Stage-by-Stage Breakdown
 
 #### 1. Request Parsing (`src/planner.py:parse_request`)
-* **What it does:** Extracts structured intent (`destination`, `num_days`, `budget`, `budget_level`, `party_adults`, `party_children`, `interests`, `pace`) from free-text traveler input.
+* **What it does:** Extracts structured intent (`destination`, `num_days`, `budget`, `budget_level`, `party_adults`, `party_children`, `interests`, `pace`) from free-text traveler input using xAI Grok (primary) or Google Gemini (fallback).
 * **Why it exists:** Provides strongly typed input to downstream retrieval and validation filters.
-* **Responsibility:** Normalizing traveler intent. If LLM parsing times out or fails, falls back to deterministic regex pattern matching.
+* **Responsibility:** Normalizing traveler intent. If LLM calls time out or fail across both providers, falls back to deterministic regex pattern matching.
 * **What it does NOT do:** Does not select inventory or make pricing assumptions.
 
 #### 2. Deterministic Candidate Retrieval (`src/retriever.py:retrieve_candidates`)
@@ -137,9 +137,9 @@ Human Review Required (Dynamic operational review justifications)
 * **What it does NOT do:** Does not force every candidate in the pool to be scheduled.
 
 #### 6. Itinerary Generation (`src/planner.py:generate_itinerary`)
-* **What it does:** Schedules pool candidates across trip days, balancing daily pace, meal times, and recovery days.
+* **What it does:** Schedules pool candidates across trip days, balancing daily pace, meal times, and recovery days using xAI Grok (primary) or Google Gemini (fallback).
 * **Why it exists:** Leverages generative AI for contextual sequencing, narrative summaries, and sensible day-to-day composition.
-* **Responsibility:** Daily item arrangement and narrative justification.
+* **Responsibility:** Daily item arrangement and narrative justification. If both providers fail, invokes `_deterministic_generate_itinerary`.
 * **What it does NOT do:** Does not calculate final prices and cannot introduce candidate IDs outside the pool.
 
 #### 7. Deterministic Pricing Engine (`src/pricing.py:calculate_price`)
@@ -376,6 +376,10 @@ External AI Request (Gemini / Grok / JEV)
   * `*_rate_limited`: HTTP 429 or `ResourceExhausted` quota errors.
   * `*_service_error`: HTTP 5xx errors, connection resets, or 402 payment requirements.
   * `*_invalid_response`: Non-JSON, truncated, or schema-violating response payloads.
+* **Multi-Provider LLM Failover (`src/llm.py:LLMClient`):** The system implements a resilient tiered model architecture:
+  1. **Primary LLM:** Calls xAI Grok (`grok-beta`) or Groq (`llama-3.3-70b-versatile` if a `gsk_` key is supplied) for fast, structured generation.
+  2. **Secondary LLM Fallback:** If Grok encounters a timeout, HTTP 429 rate limit, 5xx service outage, or authentication issue, it automatically catches the exception and fails over to Google Gemini (`gemini-2.5-flash`).
+  3. **Deterministic Planner Fallback:** If all external model providers are unreachable or return invalid schemas, the pipeline cleanly invokes `_deterministic_generate_itinerary`.
 * **Grounded JEV Fallback (`src/jev.py:_deterministic_fallback`):** When JEV fails, candidates are ranked using the identical 8 dimensions via deterministic Python scoring. Diagnostics record:
   ```json
   "jev_used": false,
@@ -518,9 +522,15 @@ cp .env.example .env
 ```
 Populate `.env` with your API keys:
 ```env
+GROK_API_KEY=your_grok_or_groq_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
 JEVMODEL_API_KEY=your_jev_api_key_here
 ```
+
+* `GROK_API_KEY`: Primary LLM provider (supports xAI `grok-beta`, or Groq keys starting with `gsk_` for `llama-3.3-70b-versatile`; also accepts `XAI_API_KEY` or `GROK`).
+* `GEMINI_API_KEY`: Secondary LLM fallback (uses Google `gemini-2.5-flash`).
+* `JEVMODEL_API_KEY`: Bounded candidate ranking decision layer.
+
 > **Offline / Resilient Execution:** If API keys are omitted or quotas are exhausted, the system automatically runs using its built-in grounded deterministic fallbacks (`_deterministic_fallback` and `_deterministic_generate_itinerary`). All grounding, pricing, and validation rules remain 100% active.
 
 ---
@@ -616,10 +626,11 @@ travel-ai-assignment/
 
 | External Service | Environment Variable | Usage in Pipeline | Failure Behavior |
 | :--- | :--- | :--- | :--- |
-| **Google Gemini** | `GEMINI_API_KEY` | Request parsing & natural language itinerary generation | Degrades to regex parser & `_deterministic_generate_itinerary` |
+| **xAI Grok / Groq** | `GROK_API_KEY` (or `GROK`, `XAI_API_KEY`) | **Primary LLM:** Request parsing & structured itinerary generation | Automatically catches errors and fails over to Google Gemini |
+| **Google Gemini** | `GEMINI_API_KEY` | **Secondary LLM Fallback:** Request parsing & itinerary generation | Degrades to regex parser & `_deterministic_generate_itinerary` |
 | **Jev Model** | `JEVMODEL_API_KEY` | Multi-dimensional candidate evaluation | Degrades to `_deterministic_fallback` with full diagnostics |
 
-Both external dependencies are bounded by 15-second request timeouts and granular error classifiers. The system runs fully offline when API keys are absent or invalid.
+All external dependencies are bounded by 15-second request timeouts and granular error classifiers. The system runs fully offline when API keys are absent or invalid.
 
 ---
 
