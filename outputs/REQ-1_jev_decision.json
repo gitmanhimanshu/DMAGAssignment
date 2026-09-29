@@ -1,0 +1,213 @@
+{
+  "ranked_candidates": [
+    {
+      "rank": 1,
+      "candidate_id": "HOT-001",
+      "scores": {
+        "budget_fit": 1.0,
+        "destination_fit": 1.0,
+        "interest_fit": 0.88,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 1.0,
+        "pace_fit": 0.92,
+        "party_suitability": 0.98,
+        "quality": 0.88
+      },
+      "overall_score": 0.96,
+      "reason": "Budget-conscious accommodation in Alleppey at Rs. 3200/night. Matches party requirements with capacity for 4 guests. Directly satisfies traveler preferences for budget, family-friendly, backwaters. Aligns with past-trip feedback favoring unhurried stays and local hospitality."
+    },
+    {
+      "rank": 2,
+      "candidate_id": "ACT-001",
+      "scores": {
+        "budget_fit": 0.6,
+        "destination_fit": 1.0,
+        "interest_fit": 1.0,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 1.0,
+        "pace_fit": 0.65,
+        "party_suitability": 0.98,
+        "quality": 0.94
+      },
+      "overall_score": 0.86,
+      "reason": "Matches the request for nature, local food with a relaxed pace, aligned with the traveler's preference for family-friendly experiences. Located directly in base destination Alleppey."
+    },
+    {
+      "rank": 3,
+      "candidate_id": "ACT-004",
+      "scores": {
+        "budget_fit": 0.84,
+        "destination_fit": 0.45,
+        "interest_fit": 0.76,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 1.0,
+        "pace_fit": 0.92,
+        "party_suitability": 0.98,
+        "quality": 0.96
+      },
+      "overall_score": 0.82,
+      "reason": "Matches the request for local food with a relaxed pace, aligned with the traveler's preference for family-friendly experiences. Located in Kochi outside base destination Alleppey. Affordable pricing at Rs. 1200/person."
+    },
+    {
+      "rank": 4,
+      "candidate_id": "ACT-002",
+      "scores": {
+        "budget_fit": 0.91,
+        "destination_fit": 0.45,
+        "interest_fit": 0.64,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 0.9,
+        "pace_fit": 0.92,
+        "party_suitability": 0.98,
+        "quality": 0.9
+      },
+      "overall_score": 0.8,
+      "reason": "Matches the request for nature with a relaxed pace, aligned with the traveler's preference for family-friendly experiences. Located in Munnar outside base destination Alleppey. Affordable pricing at Rs. 900/person."
+    },
+    {
+      "rank": 5,
+      "candidate_id": "ACT-005",
+      "scores": {
+        "budget_fit": 1.0,
+        "destination_fit": 0.45,
+        "interest_fit": 0.52,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 0.75,
+        "pace_fit": 0.92,
+        "party_suitability": 0.98,
+        "quality": 0.84
+      },
+      "overall_score": 0.79,
+      "reason": "Suited for a relaxed pace in Kochi, aligned with the traveler's preference for family-friendly experiences. Located in Kochi outside base destination Alleppey. Affordable pricing at Rs. 500/person."
+    },
+    {
+      "rank": 6,
+      "candidate_id": "TRN-001",
+      "scores": {
+        "budget_fit": 0.85,
+        "destination_fit": 1.0,
+        "interest_fit": 0.4,
+        "traveler_preference_fit": 0.7,
+        "past_trip_feedback_fit": 0.75,
+        "pace_fit": 0.75,
+        "party_suitability": 0.98,
+        "quality": 0.8
+      },
+      "overall_score": 0.78,
+      "reason": "Private sedan with driver and capacity for 4."
+    },
+    {
+      "rank": 7,
+      "candidate_id": "TRN-002",
+      "scores": {
+        "budget_fit": 0.85,
+        "destination_fit": 1.0,
+        "interest_fit": 0.4,
+        "traveler_preference_fit": 0.7,
+        "past_trip_feedback_fit": 0.75,
+        "pace_fit": 0.75,
+        "party_suitability": 0.98,
+        "quality": 0.8
+      },
+      "overall_score": 0.78,
+      "reason": "Private SUV with driver and capacity for 6."
+    },
+    {
+      "rank": 8,
+      "candidate_id": "TRN-003",
+      "scores": {
+        "budget_fit": 0.85,
+        "destination_fit": 0.95,
+        "interest_fit": 0.4,
+        "traveler_preference_fit": 0.4,
+        "past_trip_feedback_fit": 0.75,
+        "pace_fit": 0.75,
+        "party_suitability": 0.85,
+        "quality": 0.8
+      },
+      "overall_score": 0.73,
+      "reason": "Kochi Airport Transfer with capacity for 4."
+    },
+    {
+      "rank": 9,
+      "candidate_id": "ACT-003",
+      "scores": {
+        "budget_fit": 0.79,
+        "destination_fit": 0.45,
+        "interest_fit": 0.52,
+        "traveler_preference_fit": 0.7,
+        "past_trip_feedback_fit": 0.9,
+        "pace_fit": 0.75,
+        "party_suitability": 0.6,
+        "quality": 0.92
+      },
+      "overall_score": 0.66,
+      "reason": "Matches the nature request; its moderate difficulty warrants human review because the catalog does not specify age or fitness suitability."
+    },
+    {
+      "rank": 10,
+      "candidate_id": "HOT-002",
+      "scores": {
+        "budget_fit": 0.2,
+        "destination_fit": 0.45,
+        "interest_fit": 0.52,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 0.9,
+        "pace_fit": 0.92,
+        "party_suitability": 0.98,
+        "quality": 0.92
+      },
+      "overall_score": 0.6,
+      "reason": "Higher price point (Rs. 6800/night) is less aligned with requested budget. Matches party requirements with capacity for 4 guests. Aligns with past-trip feedback favoring unhurried stays and local hospitality."
+    }
+  ],
+  "candidate_pool": {
+    "hotels": [
+      "HOT-001"
+    ],
+    "activities": [
+      "ACT-001",
+      "ACT-004",
+      "ACT-005"
+    ],
+    "transport": [
+      "TRN-001"
+    ]
+  },
+  "planner_candidate_ids": [
+    "HOT-001",
+    "ACT-001",
+    "ACT-004",
+    "ACT-005",
+    "TRN-001"
+  ],
+  "selected_candidate_ids": [
+    "HOT-001",
+    "ACT-001",
+    "ACT-004",
+    "ACT-005",
+    "TRN-001"
+  ],
+  "diagnostics": {
+    "retrieved_candidate_count": 10,
+    "valid_candidate_count": 10,
+    "jev_ranked_count": 10,
+    "candidate_pool": {
+      "hotels": [
+        "HOT-001"
+      ],
+      "activities": [
+        "ACT-001",
+        "ACT-004",
+        "ACT-005"
+      ],
+      "transport": [
+        "TRN-001"
+      ]
+    },
+    "jev_used": false,
+    "ranking_source": "deterministic_fallback",
+    "fallback_used": true,
+    "jev_failure_reason": "jev_service_error: Jev API HTTP 402: {\"error\":{\"type\":\"insufficient_credits\",\"message\":\"Not enough input tokens. Buy tokens at https://jevmodel.org/pricing/\"}}"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "request_id": "REQ-3",
+  "status": "unfulfillable",
+  "summary": "This request cannot be fulfilled from the provided supplier catalog because no matching inventory is available for the requested destination.",
+  "days": [],
+  "total_price": 0.0,
+  "currency": "INR",
+  "grounding_status": "valid",
+  "human_review_required": true,
+  "human_review_reasons": [
+    "This request cannot be fulfilled from the provided supplier catalog because no matching inventory is available for the requested destination."
+  ],
+  "budget_summary": null,
+  "preference_coverage": {},
+  "planner_candidate_ids": [],
+  "selected_candidate_ids": [],
+  "diagnostics": null,
+  "planner_fallback_used": null,
+  "planner_fallback_reason": null
+}

@@ -1,0 +1,144 @@
+{
+  "ranked_candidates": [
+    {
+      "rank": 1,
+      "candidate_id": "ACT-002",
+      "scores": {
+        "budget_fit": 1.0,
+        "destination_fit": 1.0,
+        "interest_fit": 0.85,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 0.9,
+        "pace_fit": 0.92,
+        "party_suitability": 0.95,
+        "quality": 0.9
+      },
+      "overall_score": 0.94,
+      "reason": "Matches the request for tea estates with a relaxed pace, aligned with the traveler's preference for nature experiences. Located directly in base destination Munnar. Affordable pricing at Rs. 900/person."
+    },
+    {
+      "rank": 2,
+      "candidate_id": "HOT-004",
+      "scores": {
+        "budget_fit": 1.0,
+        "destination_fit": 1.0,
+        "interest_fit": 0.55,
+        "traveler_preference_fit": 0.7,
+        "past_trip_feedback_fit": 0.9,
+        "pace_fit": 0.92,
+        "party_suitability": 0.95,
+        "quality": 0.82
+      },
+      "overall_score": 0.87,
+      "reason": "Budget-conscious accommodation in Munnar at Rs. 1500/night. Matches party requirements with capacity for 2 guests. Aligns with past-trip feedback favoring unhurried stays and local hospitality."
+    },
+    {
+      "rank": 3,
+      "candidate_id": "TRN-001",
+      "scores": {
+        "budget_fit": 0.85,
+        "destination_fit": 0.95,
+        "interest_fit": 0.4,
+        "traveler_preference_fit": 0.7,
+        "past_trip_feedback_fit": 0.75,
+        "pace_fit": 0.75,
+        "party_suitability": 0.8,
+        "quality": 0.8
+      },
+      "overall_score": 0.74,
+      "reason": "Private sedan with driver and capacity for 4."
+    },
+    {
+      "rank": 4,
+      "candidate_id": "TRN-002",
+      "scores": {
+        "budget_fit": 0.85,
+        "destination_fit": 0.95,
+        "interest_fit": 0.4,
+        "traveler_preference_fit": 0.7,
+        "past_trip_feedback_fit": 0.75,
+        "pace_fit": 0.75,
+        "party_suitability": 0.8,
+        "quality": 0.8
+      },
+      "overall_score": 0.74,
+      "reason": "Private SUV with driver and capacity for 6."
+    },
+    {
+      "rank": 5,
+      "candidate_id": "HOT-002",
+      "scores": {
+        "budget_fit": 0.2,
+        "destination_fit": 1.0,
+        "interest_fit": 0.85,
+        "traveler_preference_fit": 1.0,
+        "past_trip_feedback_fit": 0.9,
+        "pace_fit": 0.92,
+        "party_suitability": 0.8,
+        "quality": 0.92
+      },
+      "overall_score": 0.72,
+      "reason": "Higher price point (Rs. 6800/night) is less aligned with requested budget. Directly satisfies traveler preferences for mid-range, nature, tea-estate. Aligns with past-trip feedback favoring unhurried stays and local hospitality."
+    },
+    {
+      "rank": 6,
+      "candidate_id": "ACT-003",
+      "scores": {
+        "budget_fit": 0.6,
+        "destination_fit": 1.0,
+        "interest_fit": 0.55,
+        "traveler_preference_fit": 0.7,
+        "past_trip_feedback_fit": 0.9,
+        "pace_fit": 0.75,
+        "party_suitability": 0.6,
+        "quality": 0.92
+      },
+      "overall_score": 0.7,
+      "reason": "Matches the hiking request and nature preference; its moderate difficulty warrants human review because the catalog does not specify age or fitness suitability."
+    }
+  ],
+  "candidate_pool": {
+    "hotels": [
+      "HOT-004"
+    ],
+    "activities": [
+      "ACT-002",
+      "ACT-003"
+    ],
+    "transport": [
+      "TRN-001"
+    ]
+  },
+  "planner_candidate_ids": [
+    "HOT-004",
+    "ACT-002",
+    "ACT-003",
+    "TRN-001"
+  ],
+  "selected_candidate_ids": [
+    "HOT-004",
+    "ACT-002",
+    "ACT-003"
+  ],
+  "diagnostics": {
+    "retrieved_candidate_count": 6,
+    "valid_candidate_count": 6,
+    "jev_ranked_count": 6,
+    "candidate_pool": {
+      "hotels": [
+        "HOT-004"
+      ],
+      "activities": [
+        "ACT-002",
+        "ACT-003"
+      ],
+      "transport": [
+        "TRN-001"
+      ]
+    },
+    "jev_used": false,
+    "ranking_source": "deterministic_fallback",
+    "fallback_used": true,
+    "jev_failure_reason": "jev_service_error: Jev API HTTP 402: {\"error\":{\"type\":\"insufficient_credits\",\"message\":\"Not enough input tokens. Buy tokens at https://jevmodel.org/pricing/\"}}"
+  }
+}

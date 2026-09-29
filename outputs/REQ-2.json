@@ -1,0 +1,104 @@
+{
+  "request_id": "REQ-2",
+  "status": "success",
+  "summary": "2-day grounded, relaxed itinerary based in Munnar",
+  "days": [
+    {
+      "day_number": 1,
+      "summary": "Arrival in Munnar, check-in at Munnar Hikers Hostel, and unhurried local relaxation.",
+      "items": [
+        {
+          "catalog_id": "HOT-004",
+          "item_type": "hotel",
+          "name": "Munnar Hikers Hostel",
+          "location": "Munnar",
+          "quantity": 1,
+          "unit_price": 1500.0,
+          "line_total": 1500.0,
+          "reason": "Budget-conscious accommodation in Munnar at Rs. 1500/night. Matches party requirements with capacity for 2 guests. Aligns with past-trip feedback favoring unhurried stays and local hospitality."
+        },
+        {
+          "catalog_id": "ACT-002",
+          "item_type": "activity",
+          "name": "Munnar Tea Estate Walk & Tasting",
+          "location": "Munnar",
+          "quantity": 2,
+          "unit_price": 900.0,
+          "line_total": 1800.0,
+          "reason": "Matches the request for tea estates with a relaxed pace, aligned with the traveler's preference for nature experiences. Located directly in base destination Munnar. Affordable pricing at Rs. 900/person."
+        }
+      ]
+    },
+    {
+      "day_number": 2,
+      "summary": "Eravikulam National Park Trek in Munnar.",
+      "items": [
+        {
+          "catalog_id": "ACT-003",
+          "item_type": "activity",
+          "name": "Eravikulam National Park Trek",
+          "location": "Munnar",
+          "quantity": 2,
+          "unit_price": 1400.0,
+          "line_total": 2800.0,
+          "reason": "Matches the hiking request and nature preference; its moderate difficulty warrants human review because the catalog does not specify age or fitness suitability."
+        }
+      ]
+    }
+  ],
+  "total_price": 6100.0,
+  "currency": "INR",
+  "grounding_status": "valid",
+  "human_review_required": true,
+  "human_review_reasons": [
+    "ACT-003 is a moderate-difficulty trek, but the catalog does not specify age or fitness suitability; confirm suitability before booking.",
+    "Final availability and booking details are not provided by the supplier catalog and require human confirmation."
+  ],
+  "budget_summary": {
+    "requested_budget": null,
+    "planned_total": 6100.0,
+    "budget_used": 6100.0,
+    "remaining_budget": null,
+    "budget_utilization": null,
+    "budget_status": "no_numeric_budget",
+    "budget_note": "The request indicates a budget-conscious preference but does not specify a numeric budget. The planned itinerary costs ₹6,100."
+  },
+  "preference_coverage": {
+    "hiking": true,
+    "tea estates": true
+  },
+  "planner_candidate_ids": [
+    "HOT-004",
+    "ACT-002",
+    "ACT-003",
+    "TRN-001"
+  ],
+  "selected_candidate_ids": [
+    "HOT-004",
+    "ACT-002",
+    "ACT-003"
+  ],
+  "diagnostics": {
+    "retrieved_candidate_count": 6,
+    "valid_candidate_count": 6,
+    "jev_ranked_count": 6,
+    "candidate_pool": {
+      "hotels": [
+        "HOT-004"
+      ],
+      "activities": [
+        "ACT-002",
+        "ACT-003"
+      ],
+      "transport": [
+        "TRN-001"
+      ]
+    },
+    "jev_used": false,
+    "ranking_source": "deterministic_fallback",
+    "fallback_used": true,
+    "jev_failure_reason": "jev_service_error: Jev API HTTP 402: {\"error\":{\"type\":\"insufficient_credits\",\"message\":\"Not enough input tokens. Buy tokens at https://jevmodel.org/pricing/\"}}"
+  },
+  "planner_fallback_used": true,
+  "planner_fallback_reason": "llm_service_error"
+}

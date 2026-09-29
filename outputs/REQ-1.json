@@ -1,0 +1,145 @@
+{
+  "request_id": "REQ-1",
+  "status": "success",
+  "summary": "5-day grounded, relaxed itinerary based in Alleppey",
+  "days": [
+    {
+      "day_number": 1,
+      "summary": "Arrival in Alleppey, check-in at Backwater Breeze Homestay, and unhurried local relaxation.",
+      "items": [
+        {
+          "catalog_id": "HOT-001",
+          "item_type": "hotel",
+          "name": "Backwater Breeze Homestay",
+          "location": "Alleppey",
+          "quantity": 4,
+          "unit_price": 3200.0,
+          "line_total": 12800.0,
+          "reason": "Budget-conscious accommodation in Alleppey at Rs. 3200/night. Matches party requirements with capacity for 4 guests. Directly satisfies traveler preferences for budget, family-friendly, backwaters. Aligns with past-trip feedback favoring unhurried stays and local hospitality."
+        }
+      ]
+    },
+    {
+      "day_number": 2,
+      "summary": "Alleppey Houseboat Day Cruise in Alleppey.",
+      "items": [
+        {
+          "catalog_id": "ACT-001",
+          "item_type": "activity",
+          "name": "Alleppey Houseboat Day Cruise",
+          "location": "Alleppey",
+          "quantity": 4,
+          "unit_price": 2200.0,
+          "line_total": 8800.0,
+          "reason": "Matches the request for nature, local food with a relaxed pace, aligned with the traveler's preference for family-friendly experiences. Located directly in base destination Alleppey."
+        }
+      ]
+    },
+    {
+      "day_number": 3,
+      "summary": "Dedicated unstructured recovery day following Alleppey Houseboat Day Cruise, allowing flexible family time and self-guided relaxation at the accommodation.",
+      "items": []
+    },
+    {
+      "day_number": 4,
+      "summary": "Fort Kochi Food Walk and Kathakali Performance Evening in Kochi.",
+      "items": [
+        {
+          "catalog_id": "ACT-004",
+          "item_type": "activity",
+          "name": "Fort Kochi Food Walk",
+          "location": "Kochi",
+          "quantity": 4,
+          "unit_price": 1200.0,
+          "line_total": 4800.0,
+          "reason": "Matches the request for local food with a relaxed pace, aligned with the traveler's preference for family-friendly experiences. Located in Kochi outside base destination Alleppey. Affordable pricing at Rs. 1200/person."
+        },
+        {
+          "catalog_id": "ACT-005",
+          "item_type": "activity",
+          "name": "Kathakali Performance Evening",
+          "location": "Kochi",
+          "quantity": 4,
+          "unit_price": 500.0,
+          "line_total": 2000.0,
+          "reason": "Suited for a relaxed pace in Kochi, aligned with the traveler's preference for family-friendly experiences. Located in Kochi outside base destination Alleppey. Affordable pricing at Rs. 500/person."
+        },
+        {
+          "catalog_id": "TRN-001",
+          "item_type": "transport",
+          "name": "Private Cab (Sedan, per day)",
+          "location": "Kerala",
+          "quantity": 1,
+          "unit_price": 3000.0,
+          "line_total": 3000.0,
+          "reason": "Private sedan with driver and capacity for 4."
+        }
+      ]
+    },
+    {
+      "day_number": 5,
+      "summary": "Leisurely morning in Alleppey for breakfast and packing, followed by check-out and onward departure.",
+      "items": []
+    }
+  ],
+  "total_price": 31400.0,
+  "currency": "INR",
+  "grounding_status": "valid",
+  "human_review_required": true,
+  "human_review_reasons": [
+    "The itinerary spans multiple locations (Alleppey, Kochi) and the supplier catalog does not provide inter-location travel times or transit schedules; confirm travel logistics before booking.",
+    "Final availability and booking details are not provided by the supplier catalog and require human confirmation."
+  ],
+  "budget_summary": {
+    "requested_budget": 60000.0,
+    "planned_total": 31400.0,
+    "budget_used": 31400.0,
+    "remaining_budget": 28600.0,
+    "budget_utilization": 0.523,
+    "budget_status": "under_budget",
+    "budget_note": "The itinerary remains under the requested budget because the available catalog does not contain additional inventory that is necessary to satisfy the request without adding unnecessary purchases."
+  },
+  "preference_coverage": {
+    "nature": true,
+    "local food": true,
+    "relaxed": true
+  },
+  "planner_candidate_ids": [
+    "HOT-001",
+    "ACT-001",
+    "ACT-004",
+    "ACT-005",
+    "TRN-001"
+  ],
+  "selected_candidate_ids": [
+    "HOT-001",
+    "ACT-001",
+    "ACT-004",
+    "ACT-005",
+    "TRN-001"
+  ],
+  "diagnostics": {
+    "retrieved_candidate_count": 10,
+    "valid_candidate_count": 10,
+    "jev_ranked_count": 10,
+    "candidate_pool": {
+      "hotels": [
+        "HOT-001"
+      ],
+      "activities": [
+        "ACT-001",
+        "ACT-004",
+        "ACT-005"
+      ],
+      "transport": [
+        "TRN-001"
+      ]
+    },
+    "jev_used": false,
+    "ranking_source": "deterministic_fallback",
+    "fallback_used": true,
+    "jev_failure_reason": "jev_service_error: Jev API HTTP 402: {\"error\":{\"type\":\"insufficient_credits\",\"message\":\"Not enough input tokens. Buy tokens at https://jevmodel.org/pricing/\"}}"
+  },
+  "planner_fallback_used": true,
+  "planner_fallback_reason": "llm_service_error"
+}
