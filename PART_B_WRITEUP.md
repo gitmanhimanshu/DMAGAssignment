@@ -191,6 +191,7 @@ Google Gemini (`gemini-2.5-flash` via the `google-genai` SDK) is incorporated in
 
 * **Contextual Language Reasoning:** Gemini is utilized for extracting structured travel intent from nuanced natural language requests and for composing cohesive day-by-day itinerary narratives from bounded candidate pools.
 * **Fast Structured Output:** Gemini natively supports rigid Pydantic schema generation, significantly reducing parsing failures during request extraction.
+* **Free-Tier Evaluation Choice:** Google Gemini's generous free-tier API quota was chosen specifically to ensure this take-home project can be tested and reproduced without incurring API costs.
 * **Explicit Boundary of Distrust:** Gemini is strictly excluded from commercial calculations. It is never trusted for supplier pricing, catalog inventory existence, catalog IDs, room capacities, or grand totals. Python deterministic logic overwrites all unit prices and recalculates totals directly from catalog records.
 
 ### 4. Why Grok?
@@ -198,7 +199,7 @@ Google Gemini (`gemini-2.5-flash` via the `google-genai` SDK) is incorporated in
 The repository implements a multi-provider LLM abstraction (`src/llm.py:LLMClient`) with **xAI Grok / Groq** configured as the primary model and **Gemini** as the secondary fallback:
 
 * **Primary Generation Tier:** When configured with `GROK_API_KEY` (or `GROK`, `XAI_API_KEY`), the client calls xAI Grok (`grok-beta`) or Groq (`llama-3.3-70b-versatile` if a `gsk_` key is supplied) for fast, cost-effective structured generation.
-* **Free / Low-Cost Model Configuration Note:** This take-home implementation deliberately uses a free or low-cost provider tier (Groq / xAI Grok free credits) to make evaluation frictionless and zero-cost. Evaluators or production teams can seamlessly change the model configuration and API keys to frontier models such as Anthropic Claude (`claude-3-5-sonnet`) or OpenAI GPT (`gpt-4o`) if desired, simply by configuring standard API endpoints.
+* **Free-Tier Usage & Model Adaptability Note:** To make evaluation frictionless and completely zero-cost for this take-home assignment, Google Gemini (via free-tier API quotas) and Groq/xAI Grok (free tier) are used. The architecture is intentionally decoupled from specific model providers: evaluators and production operators can easily change the model configuration and API keys to credit-based enterprise models (such as OpenAI's `gpt-4o`, Anthropic's `claude-3-5-sonnet`, or higher-tier Gemini/Grok versions) based on available team credits and requirements, without modifying any retrieval, pricing, or validation logic.
 * **Automatic Exception Failover:** In `src/llm.py`, model calls are wrapped in provider-level exception handling. If Grok encounters a timeout, HTTP 429 rate limit, 5xx service outage, or authentication error, it catches the exception, logs a diagnostic notice, and immediately fails over to Google Gemini (`gemini-2.5-flash`).
 * **Provider-Agnostic Model Boundary:** Encapsulating the generative layer behind an abstract `LLMClient` interface ensures the underlying model provider can be swapped at any time (based on latency, context windows, enterprise pricing, or rate limits) without altering catalog grounding, deterministic pricing, or validation guarantees.
 
