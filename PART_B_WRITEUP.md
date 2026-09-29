@@ -160,7 +160,179 @@ Every generated itinerary returns `human_review_required: true` with dynamic, co
 * **Transit & Route Logistics:** In **REQ-1**, the itinerary spans both Alleppey and Kochi. Because the catalog does not provide transit schedules, travel times, or road conditions, human operators must verify inter-city travel feasibility.
 * **Activity Suitability Confirmation:** In **REQ-2**, the Eravikulam National Park Trek (`ACT-003`) is cataloged as moderate difficulty, but the catalog omits minimum fitness or age guidelines. Because the catalog does not provide enough suitability information for the system to make a final determination, human review is flagged to confirm that the activity is suitable for the travelers before booking.
 
-## 8. Future Improvements
+## Technology & Architecture Decisions
+
+This architecture is built on a foundational engineering boundary: probabilistic language models are isolated to semantic understanding and synthesis, while deterministic software remains authoritative for catalog truth, business rules, financial calculations, state transitions, and validation. In a commercial travel system, hallucinated inventory, fabricated pricing, or invalid room capacities create direct operational and financial liability. The technology choices throughout this pipeline were selected to enforce these boundaries at every transition.
+
+### 1. Why LangGraph?
+
+The travel planning workflow is orchestrated using LangGraph (`src/graph.py:TravelGraph`) rather than a monolithic LLM prompt or a rigid sequential chain:
+
+* **Explicit State Transitions:** The pipeline represents discrete operational stages (`parse_request` → `retrieve_candidates` → `inventory_check` → `rank_candidates_with_jev` → `generate_itinerary` → `calculate_price` → `validate_itinerary` → `final_validation`). Each node operates on a strongly typed `AgentState` schema (`src/graph_state.py`), ensuring that intermediate state is observable, inspectable, and independently testable.
+* **Non-Linear Conditional Routing:** LangGraph enables branching based on business logic. In **REQ-3** (an unfulfillable Goa request), the `inventory_check` conditional edge halts execution immediately upon detecting zero candidates, routing directly to `graceful_unfulfillable_response` without invoking JEV or LLM planning. Similarly, `validate_itinerary` routes to `regenerate_itinerary` if recoverable errors are detected, or advances to `final_validation`.
+* **Isolated Failure Recovery:** If an external model times out or returns malformed output, the graph handles fallback transitions cleanly without crashing the pipeline or losing execution context.
+* **Role Clarification:** LangGraph acts strictly as an orchestration and state management engine; it is never the source of commercial truth.
+* **Engineering Trade-off:** A state graph introduces slightly more code and boilerplate than a single-file sequential script, but it delivers decisive control, granular step-level observability, and predictable failure routing for multi-step agentic systems.
+
+### 2. Why JEV?
+
+The **Jev Model** (`src/jev.py:JevRanker`) operates as a bounded, multi-dimensional candidate evaluation layer:
+
+* **Contextual Ranking, Not Catalog Authority:** JEV evaluates candidates that have already been retrieved and verified by deterministic hard filters. JEV has no authority to decide whether inventory exists, create supplier IDs, or modify prices.
+* **Eight Normalized Scoring Dimensions:** JEV scores candidates across eight explicit criteria: `budget_fit`, `destination_fit`, `interest_fit`, `traveler_preference_fit`, `past_trip_feedback_fit`, `pace_fit`, `party_suitability`, and `quality`. This multi-criteria evaluation prevents the system from over-indexing on simple keyword matches.
+* **Decoupling Ranking from Purchasing:** Asking a generative model to select items directly from an unfiltered catalog invites hallucination and unnecessary spending. In our architecture:
+  > *Retrieval establishes what is eligible; JEV determines what is contextually relevant; deterministic validation establishes what is valid.*
+  In **REQ-2**, JEV assigns a solid score to private transport (`TRN-001`) due to capacity and quality, yet the downstream planner excludes it because all activities are co-located in Munnar.
+* **Deterministic Fallback on Failure:** When JEV encounters timeouts (15s), HTTP 429 rate limits, network connection drops, or malformed responses, it automatically degrades to `_deterministic_fallback`. This fallback scores candidates across the identical eight dimensions using catalog metadata and profile rules, setting transparent diagnostics (`fallback_used: true`, `ranking_source: "deterministic_fallback"`).
+
+### 3. Why Gemini?
+
+Google Gemini (`gemini-2.5-flash` via the `google-genai` SDK) is incorporated into the multi-provider LLM tier:
+
+* **Contextual Language Reasoning:** Gemini is utilized for extracting structured travel intent from nuanced natural language requests and for composing cohesive day-by-day itinerary narratives from bounded candidate pools.
+* **Fast Structured Output:** Gemini natively supports rigid Pydantic schema generation, significantly reducing parsing failures during request extraction.
+* **Explicit Boundary of Distrust:** Gemini is strictly excluded from commercial calculations. It is never trusted for supplier pricing, catalog inventory existence, catalog IDs, room capacities, or grand totals. Python deterministic logic overwrites all unit prices and recalculates totals directly from catalog records.
+
+### 4. Why Grok?
+
+The repository implements a multi-provider LLM abstraction (`src/llm.py:LLMClient`) with **xAI Grok / Groq** configured as the primary model and **Gemini** as the secondary fallback:
+
+* **Primary Generation Tier:** When configured with `GROK_API_KEY` (or `GROK`, `XAI_API_KEY`), the client calls xAI Grok (`grok-beta`) or Groq (`llama-3.3-70b-versatile` if a `gsk_` key is supplied) for fast, cost-effective structured generation.
+* **Automatic Exception Failover:** In `src/llm.py`, model calls are wrapped in provider-level exception handling. If Grok encounters a timeout, HTTP 429 rate limit, 5xx service outage, or authentication error, it catches the exception, logs a diagnostic notice, and immediately fails over to Google Gemini (`gemini-2.5-flash`).
+* **Cost & Experimentation Flexibility:** This assignment implementation supports a free or low-cost model configuration to minimize evaluation friction. Encapsulating the generative layer behind an abstract `LLMClient` interface ensures the underlying model provider can be switched (based on latency, context windows, free-tier quotas, or pricing) without altering retrieval, pricing, or validation guarantees.
+
+### 5. Why Deterministic Retrieval Before LLM/JEV?
+
+The system never dumps the full catalog into a language model prompt. Deterministic filtering in `src/retriever.py` executes before candidate ranking or planning:
+
+* **Enforcing Inviolable Hard Constraints:** Criteria such as destination compatibility, minimum party capacity (`capacity >= party_size`), valid catalog IDs, and the presence of mandatory pricing fields are non-negotiable. Passing invalid inventory to an LLM wastes context window tokens and introduces unnecessary hallucination opportunities.
+* **Hard Constraints vs. Soft Preferences:**
+  * *Hard constraints* dictate absolute physical or operational eligibility (e.g., party of 4 cannot fit in a 2-person room; Goa requests cannot book Kerala hotels). These are evaluated deterministically.
+  * *Soft preferences* dictate qualitative alignment (e.g., preference for unhurried pace, local food, budget consciousness). These are evaluated downstream by JEV and the planner without incorrectly pruning valid options.
+* **Efficiency & Reproducibility:** Eliminating 60–80% of irrelevant catalog inventory upfront slashes token consumption, caps latency, and guarantees reproducible filtering.
+
+### 6. Why No Vector Database?
+
+A vector database was intentionally excluded from this implementation as a deliberate engineering decision:
+
+* **Catalog Scale & Structure:** The catalog (`sample_data.json`) contains a focused set of structured supplier items with explicit keys (`location`, `capacity`, `type`, `price`, `tags`).
+* **Exact Matching vs. Approximate Search:** Travel operations require exact catalog IDs, exact capacity thresholds, and strict destination containment. Approximate semantic search via vector similarity does not provide hard mathematical guarantees on room capacity or pricing schema fields.
+* **Unnecessary Infrastructure Overhead:** Introducing Chroma, Qdrant, or Pinecone would add deployment complexity, embedding latency, index synchronization maintenance, and external failure points without improving grounding for this catalog size.
+* **Scope Boundary:** Hybrid semantic retrieval (combining dense embeddings with BM25 and structured metadata filtering) is documented as a production scaling path for catalogs exceeding tens of thousands of items, but was intentionally omitted for this take-home scope.
+
+### 7. Why Deterministic Pricing?
+
+Financial totals and line items are calculated exclusively in Python by `src/pricing.py:calculate_price`:
+
+* **Exact Arithmetic Invariants:** Unit prices are extracted directly from verified catalog supplier records (`price_per_night` for hotels, `price_per_person` for activities, `price_per_day` or `price_flat` for transport). Line totals are computed as `unit_price * quantity`, and itinerary totals equal the exact sum of line items.
+* **Protection Against Financial Hallucination:** Language models frequently introduce off-by-one errors, hallucinate ungrounded discounts, or miscalculate quantity multiplications. Overwriting all monetary fields programmatically guarantees that quotes are mathematically audit-compliant and 100% reproducible.
+* **Budget Metrics:** Budget utilization (`planned_total / requested_budget`) and remaining budget calculations are computed natively in Python, preventing fabricated spending claims.
+
+### 8. Why Itinerary Validation After LLM Generation?
+
+Generating an itinerary and validating it are intentionally separate pipeline stages:
+
+* **Catching Probabilistic Non-Compliance:** Even when provided a pre-filtered, bounded candidate pool, generative models can schedule excessive activities in a single day, violate requested rest days, omit required hotel nights, or generate unsupported logistical claims.
+* **Domain Invariant Verification:** Post-generation validation (`src/validator.py`) inspects the plan against domain rules:
+  1. *Catalog ID & Pool Grounding:* Validates that all IDs exist in the catalog and belong to `planner_candidate_ids`.
+  2. *Hotel Continuity:* Verifies $N-1$ nights of accommodation for an $N$-day trip, with adequate capacity for the party.
+  3. *Pacing & Duration Caps:* Restricts daily activity duration to $\le 7$ hours and relaxed pace to at most 1–2 activities per day.
+  4. *Coherence & Feedback:* Flags distant activities scheduled without dedicated transport and enforces past feedback (e.g., minimizing excessive city switching).
+  5. *Unsupported Claim Filtering:* Rejects unverified travel-time assertions (`DISALLOWED_TRAVEL_TIME_PHRASES`).
+* **Bounded Regeneration Loop:** If validation detects recoverable errors, the graph permits at most one regeneration attempt with specific error feedback. If errors persist, the system immediately invokes `_deterministic_generate_itinerary`, avoiding runaway token loops.
+
+### 9. Why Deterministic Fallback?
+
+External AI APIs inevitably experience outages, rate limiting, and network latency spikes. The system incorporates deterministic fallback logic rather than failing outright:
+
+* **Graceful Degradation Across Tiers:**
+  * *JEV Failure:* If JEV times out or returns HTTP 429/5xx, `_deterministic_fallback` scores candidates across the identical eight dimensions using catalog attributes and records diagnostic status.
+  * *Planner Failure:* If LLM parsing or itinerary generation fails across both Grok and Gemini, `_deterministic_generate_itinerary` deterministically allocates top-ranked candidates across the requested days.
+* **Preserving Grounding & Pricing:** Fallbacks use the exact same catalog ID validation, capacity checks, candidate pool boundaries, and deterministic pricing engine.
+* **Honest Diagnostics:** Fallbacks never invent inventory or pretend external AI calls succeeded; they populate explicit diagnostic flags (`planner_fallback_used: true`, `planner_fallback_reason: "<error_type>"`).
+
+### 10. Why Human-in-the-Loop?
+
+The system is designed as an agent-assist quoting tool, deliberately declining autonomous booking authority:
+
+* **AI Recommendation vs. Commercial Booking:** The pipeline produces verified itinerary quotes and structured rationales, but final payment processing and supplier reservation require human approval.
+* **Operational Blind Spots in Static Catalogs:**
+  * *Live Inventory:* Static catalog files cannot indicate real-time room availability or sold-out dates.
+  * *Transit Logistics:* In **REQ-1**, the plan spans Alleppey and Kochi. Because catalog records omit real-time transit schedules and road conditions, human operators must verify inter-city travel feasibility.
+  * *Physical Activity Suitability:* In **REQ-2**, the Eravikulam Trek (`ACT-003`) is listed as moderate difficulty without age or fitness minimums; operator confirmation is required to ensure traveler safety.
+
+### 11. Why Destination-Agnostic Logic?
+
+The codebase contains zero destination-specific business logic:
+
+* **No Hardcoded Geography:** The retrieval and validation logic contains no hardcoded checks for `"Kerala"`, `"Munnar"`, `"Alleppey"`, `"Kochi"`, or `"Goa"`.
+* **Data-Driven Compatibility:** Location compatibility in `src/validator.py:is_compatible_location` is derived dynamically from catalog metadata (matching local hubs, encompassing regions, or regional transport).
+* **The REQ-3 Proof Point:** In **REQ-3** (a 3-day request for Goa), the pipeline halts not because of an `if destination == "Goa"` rule, but because deterministic retrieval discovers zero matching items in the supplied catalog. The system exits cleanly with 0 items booked and ₹0 total expenditure, demonstrating true architectural generalization.
+
+### 12. Why No Fabricated Travel Times or Distances?
+
+Because the catalog does not provide physical travel durations, road distances, or transit timetables, the system strictly forbids inventing them:
+
+* **Disallowed Factual Assertions:** The validation layer actively audits generated item reasons against `DISALLOWED_TRAVEL_TIME_PHRASES` (e.g., `"30 minutes away"`, `"2 hours drive"`, `"short drive"`, `"minimizes travel time"`).
+* **Treating Unknowns as Unknown:** Rather than allowing the LLM to speculate on commute times, missing transit information is transparently surfaced as a `human_review_reasons` flag for operator resolution.
+
+### 13. Why Structured Outputs?
+
+Communication between pipeline components relies strictly on typed Pydantic models (`TravelPlan`, `ItineraryItem`, `TravelDay`, `BudgetSummary`, `JevDecision`, `ParsedRequest`):
+
+* **Predictable Interface Contracts:** Every node receives and emits validated schemas, eliminating freeform text parsing ambiguity between pipeline stages.
+* **Downstream Safety:** Strongly typed outputs enable deterministic validators to traverse line items, inspect catalog IDs, and verify arithmetic without fragile regex scraping.
+* **Granular Diagnostics:** Structured outputs allow diagnostic payloads (candidate pools, ranking scores, fallback flags) to be cleanly serialized to disk (`outputs/REQ-1.json`, `outputs/REQ-1_jev_decision.json`) for audit compliance.
+
+### 14. Production Trade-Offs
+
+| Decision | Primary Benefit | Inherent Trade-Off |
+| :--- | :--- | :--- |
+| **LangGraph Orchestration** | Explicit state management, step-level observability, and conditional branching | Additional code and graph definition boilerplate compared to sequential scripts |
+| **JEV Contextual Decision Layer** | Multi-dimensional candidate ranking separating relevance from purchasing | Extra network call and API dependency during candidate evaluation |
+| **Multi-Provider LLM (Grok/Gemini)** | Low-cost experimentation, fast structured generation, and provider redundancy | Requires managing multiple API keys and timeout configurations |
+| **Deterministic Retrieval First** | Guarantees hard constraints, prunes invalid context, and prevents hallucination | Prunes items strictly on metadata; does not infer loose semantic associations |
+| **Deterministic Pricing Engine** | 100% mathematically correct line totals and budget utilization | Requires well-structured catalog pricing fields (`price_per_night`, etc.) |
+| **Post-Generation Validation Layer** | Programmatic safety net enforcing pacing, hotel continuity, and claim rules | Adds validation runtime and potential regeneration latency on invalid output |
+| **Deterministic Fallbacks** | High resilience against API timeouts, rate limits, and service outages | Fallback itineraries lack the stylistic nuance of model-generated text |
+| **Human-in-the-Loop Review** | Prevents booking invalid or physically unvetted activities | Retains human latency in the final commercial booking loop |
+| **No Vector Database** | Maximum simplicity, exact ID matching, and zero external infrastructure overhead | Less suited for scaling to massive catalogs with tens of thousands of unstructured items |
+
+### 15. Overall Design Philosophy
+
+The overarching architectural principle of this system is simple:
+
+> **The system intentionally uses LLMs for natural language interpretation and contextual reasoning, while deterministic software remains authoritative for inventory truth, catalog IDs, pricing, constraints, validation, and failure boundaries.**
+
+The complete division of responsibility is summarized as follows:
+
+```text
+LLM (xAI Grok / Google Gemini)
+  → Interpret unstructured traveler requests
+  → Generate contextual day-by-day scheduling suggestions
+
+Deterministic Retrieval & Hard Validation
+  → Establish physical and regional inventory eligibility
+  → Verify catalog IDs, schemas, and capacity thresholds
+
+JEV Contextual Decision Layer
+  → Evaluate and rank eligible candidates across 8 contextual dimensions
+  → Curate a bounded, role-aware Candidate Pool
+
+Deterministic Itinerary Validation
+  → Verify pacing, daily duration caps, hotel continuity, and candidate pool containment
+  → Reject unverified travel-time and distance assertions
+
+Deterministic Pricing Engine
+  → Resolve unit prices directly from catalog records
+  → Calculate exact line totals, itinerary totals, and budget utilization metrics
+
+Human Travel Operator
+  → Verify live room availability, transit logistics, and physical activity suitability
+  → Authorize final booking and commercial execution
+```
+
+## 9. Future Improvements
 
 Three targeted enhancements would deliver the highest leverage in a production deployment:
 
@@ -177,6 +349,6 @@ Three targeted enhancements would deliver the highest leverage in a production d
    * *Proposed improvement:* Connect the retrieval and validation layers to live Global Distribution Systems (GDS) and map routing APIs.
    * *Practical benefit:* Enables deterministic validation of physical travel times and real-time inventory availability before human review.
 
-## 9. Conclusion
+## 10. Conclusion
 
 The core architectural thesis of this system is that generative models should be applied where language interpretation and contextual reasoning add value, while deterministic software must remain responsible for supplier truth, hard constraints, pricing, and validation. Bounding the generative layer with deterministic filtering, multi-dimensional JEV ranking, and programmatic post-validation significantly reduces the risk of hallucinated inventory, fabricated pricing, and unsupported claims. This separation makes the system easier to test, straightforward to reason about, and safe to integrate into production booking workflows.
